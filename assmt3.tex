@@ -1,0 +1,50 @@
+\documentclass{article}
+\title{ChucK Assignment 6}
+\date{15 May 2012}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{graphicx}
+
+\begin{document}
+\maketitle
+
+\textsl{In this lesson you will learn about functions and sporking.}\vspace{2mm}
+
+\begin {enumerate}
+
+\item Last week we learned how to do concurrency by launching multiple scripts at once. If that seemed a little clunky to you, well it is. There is a much more powerful method of doing concurrency, but first we need to talk about one of the most useful code structures: functions.\\
+\\
+A \textbf{function} is a subroutine or subprogram, semi-independent part of your code that performs a task. Take a look at the following code.
+
+\begin{lstlisting}
+ sayHello();
+ 
+ // FUNCTION
+ fun void sayHello()
+ {
+  <<< "Hello there!" >>>;
+ } 
+\end{lstlisting}
+
+The last four lines define a new function called sayHello.
+begin{itemize}
+\item The \textbf{fun} keyword indicates that we're defining a function.
+\item \textbf{void} indicates that this function doesn't return a value (more on this later.)
+\item We'll be doing a little more with the parentheses in a moment.
+\item The last line is where we actually \textsl{call} (use) the function.
+end {itemize}
+
+\item One of the really nice things about functions is they don't have to appear at the top of your code. It's very useful to put them at the end of your script, to keep it uncluttered.
+
+\item 
+One 
+
+\textbf{Assignment 3: Revisit and Revise}\vspace{2mm}
+\\
+\textbf{Create a short piece that uses an ADSR envelope and either effects,
+filters, or both. You may revisit the code you used from assignments 1 or 2, or
+create something new. Save your ChucK code as a .ck or .txt file and
+upload it to the assignment page on Blackboard by this Tuesday, April 17.}
+
+\end{document}

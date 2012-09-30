@@ -1,0 +1,83 @@
+\documentclass{article}
+\title{ChucK Assignment 1}
+\date{29 March 2012}
+%\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+
+\begin{document}
+\maketitle
+
+\textsl{Welcome to ChucK! ChucK is a powerful audio language that allows you to control sound synthesis in a very precise manner. In this first lesson you will learn to use oscillators and control their properties directly.}\vspace{2mm}
+
+\begin{enumerate}
+\item If you have not already done so, go to \url{http://chuck.cs.princeton.edu/release/}
+and download the \textbf{midiAudicle} for your operating system. (Mac 10.7 ``Lion'' users
+should download this: \url{https://ccrma.stanford.edu/~spencer/chuck/miniAudicle-0.2.1-beta-1.tgz})
+
+This is the built-in editor for ChucK called the miniAudicle. Open the program and
+choose \textbf{Start Virtual Machine} to launch ChucK. Then type your code into the
+blank document and click the \textbf{+} button to run it.
+
+\item Let's begin with a simple Sine Oscillator.
+
+\begin{lstlisting}
+	SinOsc myOsc => dac;
+\end{lstlisting}
+\begin {itemize}
+\item \textsl{ChucK is case-sensitive, so be sure to observe the correct capitalization.
+\item If you forget to end a line with a
+semicolon you will get an error message. This is a very common mistake.}
+\end {itemize}
+
+\item This creates a Sine Oscillator called \textbf{myOsc} and connects it to the \textbf{dac}, the \textsl{digital-to-analog convertor.} The dac is the only way to get sound output. Let's start by giving it a frequency:
+
+\begin{lstlisting}
+	440 => myOsc.freq;
+\end{lstlisting}
+
+\item The finally necessary element is \textbf{time.} Time is ChucK's real specialty; it lets you deal with precise time down to 1 audio sample, and up to 1 week!
+
+In ChucK you must explicitly specify how long to generate sound. Let's make it last 2 seconds:
+
+\begin{lstlisting}
+	2::second => now; // <-- notice the 2 colons
+\end{lstlisting}
+
+\item Run this (press the \textbf{+} button), and you should get a fabulous
+sine oscillator for 2 seconds. (You might want to turn down your computer's volume a bit.)
+
+\textbf{SinOsc} is a built-in audio object; in computer music these are called Unit Generators or UGens (pronounced ``You-Jens'').\footnote{Although Max and ChucK look very different, they have a common ancestry, Max Mathew's Music III, and ``under the hood'' they function quite similarly. Both ChucK and Max create sound by connecting UGens together, ending with the dac. Max's SinOsc object is called cycle\~~ and it functions in a very similar way as ChucK's.}
+
+Think about a hardware oscillator box. It must have some controls on it,
+right? Probably a volume control, and certainly a frequency control. In ChucK, these controls are called ``methods.'' The volume control is called \textbf{gain} and the frequency control is called \textbf{freq}. You can find them listed in the ChucK manual on page 133.
+
+\item If you want to change the value of one of the methods, you need to ChucK a value to it.
+
+\begin{lstlisting}
+	0.5 => myOsc.gain; // half volume
+	700 => myOsc.freq; // 700 Hz
+	500::ms => now; // 500 milliseconds = 0.5 seconds
+	1400 => myOsc.freq; // one octave higher
+	800::ms => now;
+\end{lstlisting}
+
+\item It's not very practical to always think in frequency. If you want notes from the equal tempered scale, you must convert them using another method, \textbf{Std.mtof}. This stands for MIDI-to-frequency. MIDI key 60 is middle C, 61 is C\#, etc.\footnote{mtof is also a Max object that does the same thing, converting MIDI key numbers to frequency.}
+
+\begin{lstlisting}
+	65 => Std.mtof => myOsc.freq; // F above middle C
+	900::ms => now;
+\end{lstlisting}
+
+\item SinOsc is not the only kind of oscillator available in ChucK. Pages 132-135 of the ChucK Manual list several different oscillators, each with its own unique sound, and sometimes with different control methods. Try some different oscillators by replacing the SinOsc at the top of this code with SawOsc, SqrOsc, or any of the others. Don't worry if things don't work or if you get an error. Just experiment with changing this sample code.
+
+\end {enumerate}
+
+\textbf{Assignment 1: Experiment with Oscillators}\vspace{2mm}
+\\
+\textbf{Using the code above as a model, experiment with different oscillators and
+their control methods. Create a melody with at least 10 pitches. Save your
+ChucK code as a .ck or .txt file and upload it to the assignment page on
+Blackboard by this Tuesday, April 3.}
+
+\end{document}

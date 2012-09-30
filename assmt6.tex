@@ -1,0 +1,208 @@
+\documentclass{article}
+\title{ChucK Assignment 6}
+\date{15 May 2012}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{graphicx}
+
+\begin{document}
+\maketitle
+
+\textsl{In this lesson you will learn about functions and sporking.}\vspace{2mm}
+
+\begin {enumerate}
+
+\item Last week we learned how to do concurrency by launching multiple scripts at once. If that seemed a little clunky to you, well it is. There is a much more powerful method of doing concurrency, but first we need to talk about one of the most useful code structures: functions.
+
+\section{Functions}
+
+A \textbf{function} is a subroutine or subprogram. It is a semi-independent part of your code that performs a task. Take a look at the following code.
+
+\begin{lstlisting}
+     sayHello();
+ 
+     // FUNCTION
+     fun void sayHello()
+     {
+       <<< "Hello there!" >>>;
+     } 
+\end{lstlisting}
+
+The last four lines define a new function called sayHello.
+
+\begin{itemize}
+\item The \textbf{fun} keyword indicates that we're defining a function.
+\item \textbf{void} indicates that this function doesn't return a value (more on this later.)
+\item We'll be doing a little more with the parentheses in a moment.
+\item The first line is where we actually \textsl{call} (use) the function.
+\end {itemize}
+
+\item One of the really nice things about functions is they don't have to appear at the top of your code. It's very useful to put them at the end of your script, to keep it uncluttered.
+
+\item Functions are most useful when you call them more than once in the same script. It's easier to read than copy-and-paste.
+
+\section{Arguments}
+\item Let's make this function a little more versatile. This version takes an \textbf{argument.} In this case the argument is a string (text):
+
+\begin{lstlisting}
+     sayHello("Keith");
+     sayHello("Ty");
+ 
+     fun void sayHello (string myName)
+     {
+       <<< "Hello there", myName >>>;
+     } 
+\end{lstlisting}
+
+\item In the function definition, the argument always needs to be preceded by a type (int, float, dur, string). You can have multiple arguments separated by commas.
+
+\begin{lstlisting}
+     sayHello("Keith",3);
+ 
+     fun void sayHello (string myName, int num)
+     {
+       repeat (num)
+       {
+        <<< "Hello there", myName >>>;
+       }
+     }
+\end{lstlisting}
+
+\item I hinted above that a function can return a value. This allows you to create functions that do calculations.
+
+\begin{lstlisting}
+     add(2,3) => int myNum;
+     <<< myNum >>>;
+ 
+     fun int add (int x, int y)
+     {
+      return x+y;
+     }
+\end{lstlisting}
+
+There are two changes here. The first is that the type is now \textbf{int}, meaning that the output will be an int. The second is the \textbf{return} keyword, which tells the function what to output.
+
+\item Here's a more useful function. It takes two integers as inputs and calculates a random float between those numbers, favoring numbers in the middle. (See the triangle distribution from lesson 4.)
+
+\begin{lstlisting}
+     fun float triRand (int x, int y)
+     {
+     	Std.rand2(x,y) => int random1;
+     	Std.rand2(x,y) => int random2;
+      return (random1 + random2) * 0.5;
+     }
+\end{lstlisting}
+
+\textsl{This example illustrates that the output type (float) is independent of the types of the arguments.}
+
+\item Another nice feature of functions is that the variables you create in them (including the names of your arguments) exist \textsl{only inside that function.} That means that if you use x and y for variables in functions, you can still use them elsewhere without conflict. Functions are like Las Vegas--what happens in functions, stays in functions! But functions also have access to your global variables.
+
+\pagebreak
+
+I'm going to use "foo" for this next example. This is one of those classic programming examples that demonstrates how functions encapsulate their variables.
+
+\begin{lstlisting}
+		3 => int foo; // GLOBAL foo
+		<<< "foo before function:", foo >>>;
+		bar();
+		<<< "foo after function:", foo >>>;
+		
+		fun void bar ()
+		{
+		 5 => int foo; // LOCAL foo
+		 <<< "foo in function:", foo >>>;
+		}
+\end{lstlisting}
+
+\section{Audio functions}
+\item You can include audio code in your functions too. Here's a function that plays one note:
+
+\begin{lstlisting}
+playNote (60, 1::second);
+playNote (62, 500::ms);
+playNote (67, 500::ms);
+
+fun void playNote (int midiNote, dur noteLen)
+{
+ ModalBar m => dac;
+ 0.25 => m.gain;
+ midiNote => Std.mtof => m.freq;
+ 1 => m.noteOn;
+ noteLen => now;
+}
+\end{lstlisting}
+
+See how readable and logical it is to encase the details of your code in functions?
+
+\section{Spork!}
+
+\item Functions can be launched as new threads with the \textbf{spork} keyword. Change the first few lines of the above code to:
+
+\begin{lstlisting}
+spork ~ playNote (60, 1::second); // Don't forget the tilde
+spork ~ playNote (62, 500::ms);
+spork ~ playNote (67, 500::ms);
+2::second => now; // need to keep parent thread alive
+\end{lstlisting}
+
+\textsl{We're sporking 3 threads that each consist of a single note. The last line above is needed because the sporked threads are child threads of your main thread, which exit as soon as the parent thread finishes.}
+
+\pagebreak
+
+\item Let's redo the Reich Phase code, only this time we'll use sporked threads.
+
+\begin{lstlisting}
+[64, 66, 71, 73, 74, 66, 64, 73, 71, 66, 74, 73] @=> int pianoPhase[]; 
+spork ~ reich(150::ms);
+spork ~ reich(149::ms);
+1::minute => now;
+
+fun void reich (dur phaseLen)
+{
+ ModalBar mb => dac;
+ 0.5 => mb.gain;
+ while (true) // repeat forever
+ {
+  for (int i; i<12; i++) // loop from 0 to 11
+  {
+   pianoPhase[i] => Std.mtof => mb.freq;
+   1 => mb.noteOn;
+   phaseLen => now; // uses argument to set time
+  }
+ }
+}
+\end{lstlisting}
+
+\textsl{This time the sporked threads are each full independent musical lines. In this example, even though the reich threads are set up to repeat forever, they will close after 1 minute because the main (parent) thread will finish.}
+
+
+\item Another way to use sporking is to create a GLOBAL audio object, and then modify it in threads.
+
+\begin{lstlisting}
+adc => PitShift p => NRev r => dac; // GLOBAL
+spork ~ pitchWave(0.01);
+1::minute => now;
+
+fun void pitchWave (float step)
+{
+ 0 => float x;
+ while (true)
+ {
+  Math.sin(x) => float s; // sine is between [-1,1]
+  Math.pow (2, s) => p.shift; 2 raised to the s power
+  x + step => x;
+  10::ms => now;
+ }
+}
+\end{lstlisting}
+
+\item It's good to keep the code inside your functions simple. Remember, functions can call other functions! If your function definition starts to get too long, it's probably time to break it up into smaller functions.
+
+\end {enumerate}
+
+\textbf{Assignment 6: Sporked Polyphony}\vspace{2mm}
+\\
+\textbf{Make a polyphonic piece with sporked threads. Save your ChucK code as a .ck or .txt file and upload it to the assignment page on Blackboard by this Tuesday, May 22.}
+
+\end{document}

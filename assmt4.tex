@@ -1,0 +1,152 @@
+\documentclass{article}
+\title{ChucK Assignment 4}
+\date{19 April 2012}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{graphicx}
+
+\begin{document}
+\maketitle
+
+\textsl{In this lesson you will explore the Synthesis Toolkit (STK) instruments in ChucK, and learn to use and control randomness.}\vspace{2mm}
+
+\begin{itemize}
+
+\item \textbf{You need to have your ChucK Manual open for this lesson.}
+
+\section{STK Instruments}
+
+\item In the early 1990s Perry Cook began developing the Synthesis Tool Kit (STK) at the Center for Computer Research in Music and Acoustics (CCRMA) at Stanford University. It's a collection of software instruments that model physical instruments, or aid in creating synthetic sounds. ChucK includes the STK as UGens. They are listed in the ChucK manual on pages 137-170.
+
+\item You may notice that we have already used some of them: ADSR, Echo, PitShift. Today we're going to focus on the physical modeling instruments. These are synthetic instruments that attempt to imitate real instruments, not just in sound but in actual sound production method.
+
+\end {itemize}
+
+\begin{enumerate}
+
+\item Look at the listing for StkInstrument on page 137. All STK instruments share some common parameters:
+
+\begin {itemize}
+
+\item \textbf{noteOn} - trigger note on
+\item \textbf{noteOff} - trigger note off
+\item \textbf{freq} - set frequency in Hz
+\item (We can ignore controlChange, since ChucK give us better controls, as you'll see below.)
+\end {itemize}
+
+\item{Try this sample STK code:}
+
+\begin{lstlisting}
+	ModalBar myBar => dac;
+	440 => myBar.freq;
+	1 => myBar.noteOn;
+	1::second => now;
+	1 => myBar.noteOff;
+	1::second => now;
+\end{lstlisting}
+
+\item The only significant difference between the above code and the oscillators you were working with before is the .noteOn and .noteOff methods. These are similar to the \textbf{ADSR} envelopes we used last week. All STK instruments have their envelopes built-in.
+
+\item In the above example I used ModalBar, one of my favorite STK instruments. Turn to page 146 to read a little more about it. You'll see that there are numerous parameters specific to ModalBar: stickHardness, strikePosition, etc. The \textbf{preset} parameter lets you choose from the 9 different Modal Presets listed on page 146.
+
+\begin{lstlisting}
+	0.15 => myBar.stickHardness;
+	3 => myBar.preset;
+	60 => Std.mtof => myBar.freq; //middle C
+	1 => myBar.noteOn;
+	1::second => now;
+	1 => myBar.noteOff;
+	1::second => now;
+\end{lstlisting}
+
+\item Experiment with several different STK instruments. Don't be disappointed if they don't sound good right away--STK instruments are not meant to be perfect right out of the box! See if you can create interesting new sounds by pushing an instrument to extremes--very low notes on the Flute, for instance.
+
+\section{Randomness}
+
+\item Computers allow us to control every detail of a musical event, but sometimes that's an overwhelming task. Iannis Xenakis used controlled randomness to determine the low-level details of some of his pieces so he could focus his efforts on the big picture. ChucK has several methods for generating randomness.
+
+\begin {itemize}
+\item \textbf{Std.rand2(0,10)} returns a random integer between 0 and 10.
+\item \textbf{Std.rand2f(0,10)} returns a random float between 0.0 and 10.0.
+\item \textbf{Std.randf()} returns a random float between -1.0 and 1.0.
+\item The special keyword \textbf{maybe} is sometimes 1, sometimes 0. This is
+most useful in \textbf{if} statements.
+\end {itemize}
+
+\item Randomness is most commonly used to control parameters:
+
+\begin{lstlisting}
+	TubeBell myBell => dac;
+
+	repeat(10)
+	{
+	 Std.rand2(72,96) => Std.mtof => myBell.freq;
+	 1 => myBell.noteOn;
+	 1500::ms => now;
+	}
+\end{lstlisting}
+
+\item Randomness can also be used to make decisions. Let's replace the
+\textbf{1500::ms => now;} with a random choice between two times:
+
+\begin{lstlisting}
+	TubeBell myBell => dac;
+	repeat(10)
+	{
+	 Std.rand2(72,96) => Std.mtof => myBell.freq;
+	 1 => myBell.noteOn;
+	 if (maybe) 500::ms => now;
+	 else 1500::ms => now;
+	}
+\end{lstlisting}
+
+\item Computer randomness isn't really random at all--it's a fancy algorithm for creating \textsl{pseudo-random} numbers. Don't worry--as far as we're concerned, they are good enough! And it gives us one nice advantage--we can choose our own "seed" value, and then every time we use that seed, we get the same repeatable series of random numbers. Try running this a few times:
+
+\begin{lstlisting}
+	Std.srand(830); // my random seed
+	repeat(10)
+	{
+	 <<< Std.rand2(1, 100) >>>;
+	}
+\end{lstlisting}
+
+Do you get the same series of "random" numbers each time?
+
+\item The random number generators Std.rand2(), rand2f(), and randf() are designed to create a \textbf{flat distribution.} That is, every number is equally likely to occur. But we can gain some control over the randomness with a \textbf{weighted distribution.} 
+
+\item Let's say we want random numbers over a range of 0-100, but with \textsl{low numbers more likely to be chosen than high.} This is a \textbf{low-weighted} distribution. One good method is to pick \textbf{two} random numbers, then compare them and select the lower of the two:
+
+\begin{lstlisting}
+	repeat(20)
+	{
+	 Std.rand2(0,100) => int a;
+	 Std.rand2(0,100) => int b;
+	 if (a<b) <<< a >>>;
+	 else <<< b >>>;
+	}
+\end{lstlisting}
+
+Run this a few times. Notice how low numbers are much more common? How would you change this to a \textbf{high-weighted} distribution?
+
+\item A \textbf{triangular} distribution is weighted toward the middle; that is, over a range of 0-100, numbers close to 50 are most common. To create this distribution, you again choose two random numbers, but now you average them together!
+
+\begin{lstlisting}
+	repeat(20)
+	{
+	 Std.rand2(0,100) => int a;
+	 Std.rand2(0,100) => int b;
+	 <<< (a+b)/2 >>>;
+	}
+\end{lstlisting}
+
+
+
+\end{enumerate}
+
+\textbf{Assignment 4: STK and Randomness}\vspace{2mm}
+\\
+\textbf{Create a short piece that uses one or more STK instruments and randomness. Save your ChucK code as a .ck or .txt file and
+upload it to the assignment page on Blackboard by this Tuesday, April 24.}
+
+\end{document}

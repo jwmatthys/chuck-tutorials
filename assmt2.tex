@@ -1,0 +1,216 @@
+\documentclass{article}
+\title{ChucK Assignment 2}
+\date{5 April 2012}
+%\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{url}
+
+\begin{document}
+\maketitle
+
+\textsl{In this lesson you will learn about variables, conditional tests, and how to perform repetitive tasks automatically. You'll also explore the properties of the natural harmonic series.}\vspace{2mm}
+
+\section{Variables}
+\begin{enumerate}
+\item We're going to continue to use oscillators for this lesson. Review the
+techniques from lesson 1 for connecting and controlling oscillators.
+
+\item Sometimes we need to be able to store and recall numbers, times, and
+other pieces of information. This is what \textbf{variables} are for. Do you remember
+variables from high school algebra? Well, forget them! The concept of
+variables in computers is completely different.
+
+\begin{itemize}
+\item Variables are just \textsl{containers.} Each container holds one thing. That
+thing might be a number, or a duration, or a piece of text, or even an oscillator.
+
+\item In order to use a variable, you first must create it, give it a name, and
+indicate what kind of information it will hold.
+
+\item The three most common variable types are \textbf{int}, \textbf{float},
+and \textbf{dur}, representing integers, floating-point numbers, and durations.
+We'll discuss more about the differences between these later.
+\end{itemize}
+
+Here is the code to create a new integer variable called \textbf{myNum}:
+
+\begin{lstlisting}
+	int myNum;
+\end{lstlisting}
+
+Now we can store a value in that variable:
+
+\begin{lstlisting}
+	25 => myNum;
+\end{lstlisting}
+
+That variable can now be used in place of a simple number in your code:
+
+\begin{lstlisting}
+	TriOsc myOsc => dac;
+	myNum => myOsc.freq;
+\end{lstlisting}
+
+\item Here's the cool twist: variables can be changed, and you can use the
+\textsl{old} value of a variable to set the \textsl{new} value.
+
+\begin{lstlisting}
+	int myFrequency;
+	55 => myFrequency;
+	<<< myFrequency >>>; // This prints the value on screen
+	myFrequency + 100 => myFrequency;
+	<<< myFrequency >>>; // Now it's 155
+\end{lstlisting}
+
+\end {enumerate}
+
+\section {Conditional Tests}
+\begin {enumerate}
+
+\item Now that we have numbers in variables, we sometimes want to use them
+to make decisions. For this we use the \textbf{if} command:
+
+\begin{lstlisting}
+float myGain;
+0.8 => myGain;
+if (myGain > 1)
+{
+  <<< "myGain is greater than 1">>>;
+} else
+{
+  <<< "myGain is not greater than 1">>>;
+}
+\end{lstlisting}
+
+\item The \textbf{conditional test} is the part inside the parentheses. In this case, myGain is 0.8, so the test \textsl {is myGain greater than 1?} is 
+false.
+
+\item The following are possible conditional tests:
+
+\begin{lstlisting}
+x > y		is x greater than y?
+x < y		is x less than y?
+x >= y		is x greater than or equal to y?
+x <= y		is x less than or equal to y?
+x == y		does x equal y? (notice 2 equal signs)
+x != y		is x not equal to y?
+\end{lstlisting}
+
+\end {enumerate}
+
+\section {Repetition}
+
+\begin{enumerate}
+\item If you want to do something many times, you could just copy and paste
+it in your code, but that's not a very efficient way of working. There are
+several methods of doing repeated things in ChucK. The first is the
+\textbf{repeat} command.
+
+\begin{lstlisting}
+repeat(10)
+{
+  <<<"Hi, nice to meet you! I have no short term memory!">>>;
+}
+\end{lstlisting}
+
+\item We can use repeat to create a series or pattern by changing a variable
+in every repetition.
+
+\begin{lstlisting}
+int myNumber;
+5 => myNumber;
+repeat(10)
+{
+  <<< myNumber >>>;
+  myNumber + 1 => myNumber; // increase it by 1
+}
+\end{lstlisting}
+
+\textsl{There is a useful shortcut for increasing a number by 1: myNumber++}
+
+\item You are probably familiar with the natural harmonic series. It is 
+produced by playing frequencies that are all multiples of the same fundamental.
+
+\begin{lstlisting}
+TriOsc myOsc => dac;
+0.5 => myOsc.gain;
+int fundamental;
+int harmonic;
+55 => fundamental;
+1 => harmonic;
+repeat(10)
+{
+  fundamental * harmonic => myOsc.freq; // multiply
+  <<< "frequency:",fundamental * harmonic >>>; // print it
+  harmonic++; // increase by 1
+  250::ms => now;
+}
+\end{lstlisting}
+
+\textsl{EXTRA CREDIT: There are multiple methods of creating the
+harmonic series. Rewrite the above code to do the same thing but using
+a different method of calculating the frequency.}
+
+\item More complicated than \textbf{repeat}, but much more flexible, is
+the \textbf{for} loop. A \textbf{for} loop contains a conditional test,
+so you can decide whether you want to keep looping or not.
+
+A \textbf{for} loop looks like this:
+
+\begin{lstlisting}
+for(int num; num < 10; num++)
+{
+  <<< num >>>;
+}
+\end{lstlisting}
+\pagebreak
+See the three different parts in the parentheses?
+
+\begin{lstlisting}
+       1         2       3
+for(int num; num < 10; num++)
+\end{lstlisting}
+
+
+\begin{itemize}
+\item The first part is the \textsl{initialization.} This is something
+done just before it begins looping. In this case, a new \textbf{int} called
+num is created.
+\item The second part is the \textsl{conditional test}. The commands in the
+brackets will be followed it it's true. If it's false, the looping ends.
+\item The third part is the \textsl{enumeration}. Simply put, it's what
+happens at the end of every repetition.
+\end{itemize}
+
+\textbf{You can remember the form of a for loop with the mnemonic ICE:}
+\begin{lstlisting}
+I: Initialization
+C: Conditional test
+E: End of Every repetition
+\end{lstlisting}
+
+\item Here is the same harmonic series code as above, but now using
+a \textbf{for} loop instead of \textbf{repeat}:
+
+\begin{lstlisting}
+TriOsc myOsc => dac;
+0.5 => myOsc.gain;
+int fundamental;
+55 => fundamental;
+for (1 => int harmonic; harmonic < 11; harmonic++ )
+{
+  fundamental * harmonic => myOsc.freq;
+  250::ms => now;
+}
+\end{lstlisting}
+\end{enumerate}
+
+\textbf{Assignment 2: Harmonic Series Etude}\vspace{2mm}
+\\
+\textbf{Experiment with the harmonic series code above. Using variables
+and a repeat() or for() loop, create a short etude that explores the
+harmonic series. Be creative: try to go beyond the simple idea of an
+ascending arpeggio. Save your ChucK code as a .ck or .txt file and
+upload it to the assignment page on Blackboard by this Tuesday, April 10.}
+
+\end{document}
